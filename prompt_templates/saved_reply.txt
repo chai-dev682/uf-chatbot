@@ -1,0 +1,7 @@
+This data provides information about the {category} with a focus on {content_focus}.
+
+Key Details or Instructions:
+    {brief}
+
+Overall information:
+    {response}
