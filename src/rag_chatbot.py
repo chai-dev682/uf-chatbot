@@ -12,44 +12,18 @@ def create_rag_chain():
     )
 
     # Create a prompt template
-    prompt = ChatPromptTemplate.from_template("""
-    You are an intelligent AI assistant, designed to provide comprehensive and informative responses for https://www.ultimatefitnessholiday.com websites clients.
-                                                
-    Ultimate Fitness Holiday offers a range of fitness retreats and holidays designed for individuals seeking to enhance their health and fitness in beautiful tropical locations. Here are the key features of the program:
-
-    ## Overview
-    - **Locations**: Ultimate Fitness Holiday operates in popular destinations such as **Spain**, **Thailand**, and **Bali**, catering to various fitness levels and preferences.
-    - **Target Audience**: The retreats are open to everyone, whether you're looking to kickstart your fitness journey or improve your existing routine. 
-
-    ## Programs Offered
-    - **Fitness Bootcamps**: These are structured programs that combine workouts with relaxation, set in picturesque environments. The Mallorca bootcamp is highlighted as the only European option, providing a blend of fitness and holiday experiences.
-    - **Long-Term Transformations**: Options for extended stays in Thailand focus on significant lifestyle changes and personal growth.
-
-    ## Community and Support
-    - Participants benefit from the guidance of expert personal trainers and the motivation of a supportive community. This environment encourages accountability and fosters connections with like-minded individuals.
-
-    ## Experience
-    - The retreats emphasize not just physical fitness but also mental well-being, aiming to transform participants' outlooks on health and fitness. Activities are balanced with free time for relaxation and exploration of the stunning locales.
-
-    Overall, Ultimate Fitness Holiday combines fitness training with vacationing, allowing participants to achieve their health goals while enjoying luxurious accommodations and beautiful surroundings.
-
-    Based on the given context below, produce an answer that elaborates on the situation, provides in-depth knowledge.
-    If context includes url, you can return that url as a reference
-    If the question is a context-free question, you do not need to describe anything related to the context.
-    Context: {context}
-
-    Question: {question}""")
+    prompt = ChatPromptTemplate.from_template(config.get_prompt_template(config.PromptTemplate.MAIN_PROMPT))
 
     # Create the RAG chain
     rag_chain = (
-        {"context": lambda x: query_pinecone(x["question"]), "question": lambda x: x["question"]}
+        {"context": lambda x: query_pinecone(x["question"]), "question": lambda x: x["question"], "conversation": lambda x: x["conversation"]}
         | prompt
         | llm
     )
     
     return rag_chain
 
-def chat_with_rag(question: str):
+def chat_with_rag(question: str, conversation: str):
     chain = create_rag_chain()
-    response = chain.invoke({"question": question})
+    response = chain.invoke({"question": question, "conversation": conversation})
     return response.content

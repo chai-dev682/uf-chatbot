@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import os
-from config import SOURCE
+from config import SOURCE, Source
 from src.vectordb_utils import import_csv_to_vector, index
 
 # Load environment variables at the start
@@ -9,7 +9,7 @@ load_dotenv()
 def main():
     try:
         # Import different types of data into vector database
-        import_csv_to_vector(os.path.join(SOURCE, "info.csv"))
+        import_csv_to_vector(os.path.join(SOURCE, Source.CSV_DATA.value))
         # Print index statistics
         print("Vector Database Statistics:")
         print(index.describe_index_stats())

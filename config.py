@@ -22,9 +22,11 @@ def load_env():
 
 class PromptTemplate(Enum):
     SAVED_REPLY = "saved_reply.txt"
+    MAIN_PROMPT = "main_prompt.txt"
 
 class Source(Enum):
-    EXAMPLE_CONVERSATION = "examples.txt"
+    CSV_DATA = "info.csv"
+    MESSAGE_HISTORY_SQLITE3 = "msg_history.db"
 
 class ModelType(str, Enum):
     gpt4o = 'gpt-4o'

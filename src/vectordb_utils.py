@@ -78,7 +78,7 @@ def format_rag_contexts(matches: list):
                 text = get_prompt_template(PromptTemplate.SAVED_REPLY).format(category=row[0], content_focus=row[1], brief=row[2], response=row[3])
                 contexts.append(text)
     context_str = "\n---\n".join(contexts)
-    print(context_str)
+    # print(context_str)
     return context_str
 
 def query_pinecone(query: str, top_k = 5):
