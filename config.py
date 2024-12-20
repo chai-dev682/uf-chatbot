@@ -16,6 +16,7 @@ Prompt_Template = join(PROJECT_ROOT, 'prompt_templates')
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.environ.get("PINECONE_INDEX_NAME")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
 
 def load_env():
     load_dotenv(join(PROJECT_ROOT, ".env"))

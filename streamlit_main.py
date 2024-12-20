@@ -17,6 +17,6 @@ if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
-    msg = chat_with_rag(prompt)
+    msg = chat_with_rag(prompt, 'no history')
     st.session_state.messages.append({"role": "assistant", "content": msg})
     st.chat_message("assistant").write(msg)

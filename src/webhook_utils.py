@@ -4,6 +4,8 @@ import config
 import os
 from src.rag_chatbot import chat_with_rag
 
+import requests
+
 # Establish a connection to the database
 conn = sqlite3.connect(os.path.join(config.SOURCE, config.Source.MESSAGE_HISTORY_SQLITE3.value))
 
@@ -23,6 +25,8 @@ CREATE TABLE IF NOT EXISTS message_history (
 
 # Commit the changes
 conn.commit()
+
+black_list = ["ultimatefitnessai@gmail.com", "info@ultimatefitnessholiday.com"]
 
 # Function to insert or update a message history
 def insert_message_history(conversation_id, new_messages):
@@ -103,22 +107,81 @@ def process(msg_history):
 
 def send_email(visitor_name, visitor_country, visitor_city, thread_id, ai_response):
     conversation_link = f'https://conversations-app.brevo.com/conversations/{thread_id}'
-    pass
+    
+    # Endpoint URL
+    url = 'https://api.brevo.com/v3/smtp/email'
+
+    # Headers
+    headers = {
+        'accept': 'application/json',
+        'api-key': config.BREVO_API_KEY,
+        'content-type': 'application/json'
+    }
+
+    html_content = html_content = f"""
+    <html>
+        <head>
+            <style>
+                /* You can include inline styles, if necessary */
+            </style>
+        </head>
+        <body>
+            <p>Hello,</p>
+            <p>There has been a new response from the AI for the visitor:</p>
+            <p><strong>Name:</strong> {visitor_name}</p>
+            <p><strong>Country:</strong> {visitor_country}</p>
+            <p><strong>City:</strong> {visitor_city}</p>
+            <p>The AI response is as follows:</p>
+            <div style="border-left: 2px solid #ccc; margin: 10px 0; padding: 10px 15px; background-color: #f9f9f9; font-style: italic;">
+                {ai_response}
+            </div>
+            <p>You can view the entire conversation at this link: <a href="{conversation_link}">{conversation_link}</a></p>
+            <p>Best regards,<br>The Brevo Team</p>
+        </body>
+    </html>
+    """
+
+    data = {
+        "sender": {
+            "name": "Uf-chatbot",
+            "email": "info@ultimatefitnessholiday.com"
+        },
+        "to": [
+            {
+                "email": "ultimatefitnessai@gmail.com",
+                "name": "AI"
+            }
+        ],
+        "subject": f'New Response from AI for {visitor_name}',
+        "htmlContent": html_content
+    }
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        print(response)
+        print("Email sent successfully!")
+
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 def get_response(data):
     eventName = data.get('eventName', '')
     visitor = data.get('visitor', {})
     # Extract thread id and conversation link
     thread_id = visitor.get('threadId', '')
-
-    if eventName == "conversationTranscript":
-        delete_message_history(thread_id)
-        return None
     
     # Extract visitor details
     visitor_name = visitor.get('displayedName', '')
     visitor_country = visitor.get('country', '')
     visitor_city = visitor.get('city', '')
+    attr = data.get('visitor', '').get('integrationAttributes', {})
+    visitor_email = attr.get('EMAIL', '')
+
+    if visitor_email in black_list:
+        return None
+
+    if eventName == "conversationTranscript":
+        delete_message_history(thread_id)
+        return None
 
     # Extract messages history
     messages = data.get('messages', [])  # This works for 'conversationTranscript' and 'conversationFragment'
@@ -135,3 +198,5 @@ def get_response(data):
             # print(ai_response)
             insert_message_history(thread_id, [{sender: text}])
             send_email(visitor_name, visitor_country, visitor_city, thread_id, ai_response)
+        else:
+            insert_message_history(thread_id, [{sender: text}])
