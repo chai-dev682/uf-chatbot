@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS message_history (
 # Commit the changes
 conn.commit()
 
-black_list = ["ultimatefitnessai@gmail.com", "info@ultimatefitnessholiday.com"]
+black_list = ["ultimatefitnessai@gmail.com", "info@ultimatefitnessholiday.com", "mashreqdigital@mashreq.com", "noreply@wetravel.com"]
 
 # Function to insert or update a message history
 def insert_message_history(conversation_id, new_messages):

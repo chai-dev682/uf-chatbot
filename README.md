@@ -32,3 +32,12 @@ This is a basic structure for a ultimatefitness RAG chatbot project designed to 
    ```bash
    (venv) python main.py
    ```
+
+## Getting Started (using Docker)
+
+1. Install docker and docker compose
+
+2. Simply run docker compose:
+   ```
+   docker compose up -d
+   ```

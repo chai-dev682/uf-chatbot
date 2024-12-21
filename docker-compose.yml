@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  uf-chatbot:
+    build: .
+    container_name: uf-chatbot
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./source:/app/source
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+      - BREVO_API_KEY=${BREVO_API_KEY}
+    restart: unless-stopped
