@@ -10,7 +10,7 @@ This is a basic structure for a ultimatefitness RAG chatbot project designed to 
     OPENAI_API_KEY=
     PINECONE_API_KEY=
     PINECONE_INDEX_NAME=uf-chatbot
-    BREVO_API_KEY=
+    ULTIMATEFITNESSAI_EMAIL_APP_PASSWORD=
    ```
 
 2. Create a virtual environment:

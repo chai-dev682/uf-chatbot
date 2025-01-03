@@ -4,7 +4,18 @@ import config
 import os
 from src.rag_chatbot import chat_with_rag
 
-import requests
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Set up your SMTP details
+smtp_server = 'smtp.gmail.com'
+smtp_port = 587
+gmail_user = 'ultimatefitnessai@gmail.com'  # Your Gmail address
+gmail_password = config.ULTIMATEFITNESSAI_EMAIL_APP_PASSWORD
+
+from_email = gmail_user
+to_email = 'info@ultimatefitnessholiday.com'
 
 # Establish a connection to the database
 conn = sqlite3.connect(os.path.join(config.SOURCE, config.Source.MESSAGE_HISTORY_SQLITE3.value))
@@ -107,18 +118,8 @@ def process(msg_history):
 
 def send_email(visitor_name, visitor_country, visitor_city, thread_id, ai_response):
     conversation_link = f'https://conversations-app.brevo.com/conversations/{thread_id}'
-    
-    # Endpoint URL
-    url = 'https://api.brevo.com/v3/smtp/email'
 
-    # Headers
-    headers = {
-        'accept': 'application/json',
-        'api-key': config.BREVO_API_KEY,
-        'content-type': 'application/json'
-    }
-
-    html_content = html_content = f"""
+    html_content = f"""
     <html>
         <head>
             <style>
@@ -141,27 +142,33 @@ def send_email(visitor_name, visitor_country, visitor_city, thread_id, ai_respon
     </html>
     """
 
-    data = {
-        "sender": {
-            "name": "Uf-chatbot",
-            "email": "info@ultimatefitnessholiday.com"
-        },
-        "to": [
-            {
-                "email": "ultimatefitnessai@gmail.com",
-                "name": "AI"
-            }
-        ],
-        "subject": f'New Response from AI for {visitor_name}',
-        "htmlContent": html_content
-    }
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = f'New Response from AI for {visitor_name}'
+    msg.attach(MIMEText(html_content, 'html'))
+
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        print(response)
+        # Connect to the server and start TLS
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+    
+        # Login to the SMTP server
+        server.login(gmail_user, gmail_password)
+    
+        # Send the email
+        server.sendmail(from_email, to_email, msg.as_string())
+
         print("Email sent successfully!")
 
     except Exception as e:
         print(f"Failed to send email: {e}")
+
+    finally:
+        # Terminate the SMTP session and close the connection
+        server.quit()
 
 def get_response(data):
     eventName = data.get('eventName', '')
@@ -197,6 +204,8 @@ def get_response(data):
             ai_response = chat_with_rag(question=text, conversation=chat_history)
             # print(ai_response)
             insert_message_history(thread_id, [{sender: text}])
+            # TODO:
+            # add follow_up_stage update functionality here with thread_id. (Delete the record with thread_id)
             send_email(visitor_name, visitor_country, visitor_city, thread_id, ai_response)
         else:
             insert_message_history(thread_id, [{sender: text}])
