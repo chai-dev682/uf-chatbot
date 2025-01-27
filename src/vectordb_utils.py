@@ -29,7 +29,23 @@ if config.PINECONE_INDEX_NAME not in [item["name"] for item in existing_indexes]
     while not pc.describe_index(config.PINECONE_INDEX_NAME).status['ready']:
         time.sleep(1)
 else:
-    print(f"index with name {config.PINECONE_INDEX_NAME} already exists")
+    print(f"Index with name '{config.PINECONE_INDEX_NAME}' already exists.")
+    user_input = input("Would you like to delete and recreate the index? (y/n): ").lower()
+    if user_input == 'y':
+        print(f"Deleting index '{config.PINECONE_INDEX_NAME}'...")
+        pc.delete_index(config.PINECONE_INDEX_NAME)
+        print("Creating new index...")
+        pc.create_index(
+            name=config.PINECONE_INDEX_NAME,
+            dimension=dims,
+            metric='cosine',
+            spec=spec
+        )
+        while not pc.describe_index(config.PINECONE_INDEX_NAME).status['ready']:
+            time.sleep(1)
+        print("Index recreated successfully!")
+    else:
+        print("Using existing index.")
 
 # connect to index
 index = pc.Index(config.PINECONE_INDEX_NAME)
@@ -50,8 +66,6 @@ def import_csv_to_vector(csv_file_path):
         
         for row in reader:
             id = id + 1
-            if id > 30 and id < 41:
-                pass
             embedding_id = str(uuid.uuid4())
             vector = [{
                 'id': embedding_id,
